@@ -1,0 +1,101 @@
+<%= javascript_include_tag "dict.js" %>
+
+<script type="text/javascript">
+var myroot = [];
+var mydict = new dict(myroot);
+var wlist = [];
+var tpos = 0;
+var midx = 0;
+function initdict() {
+        
+    for(var x in dictdata) {
+      mydict.Addword(x, dictdata[x]);
+    }
+    
+    mydict.onlist = function (w, c)
+    {
+      var o = $('#wordlist').text();
+      wlist.push([w,c]);
+      wlist.sort(function(a,b){return b[1].m_score-a[1].m_score});
+    };
+    
+    // $('#wordlist').text('dddd');
+    // mydict.list_match("too");
+    
+    // alert('zz');  
+}
+
+function showmatch(s)
+{
+  var o = $('#wordlist').text('');
+  if (s.length > 1) {
+  mydict.list_match(s);
+  }
+}
+
+function showWordList(list)
+{
+  var buff='';
+  for(var i=0;i < list.length;i++)
+  {
+    buff = buff + (i+1) + list[i][0] + '(' + list[i][1].m_score + ')' + ' ';
+  }
+  return buff;
+}
+
+  
+$(document).ready(function ()
+  {
+    initdict();
+    // alert('x');
+    $('#input1').keydown(function (e) {
+      if (wlist.length > 0)
+      {
+        var c = String.fromCharCode(e.which);
+        if (c > '0' && c < '9')
+        {
+          c = parseInt(c) - 1 ;
+          if (c < wlist.length) {
+            // alert(wlist[c]);
+            var x = $('#input1').val();
+            x.substring(0, tpos);
+            // alert(x);
+            var word = wlist[c][0];
+            wlist[c][1].m_score = 10;
+            var output = [x.slice(0, midx), word, x.slice(tpos)].join('');
+            
+            $('#input1').val(output);
+            e.preventDefault() ;
+            
+          }
+        }
+        // $('#input1').val();
+      }
+    });
+    
+    $('#input1').keyup(function () {
+      // $('#wordlist').text($('#input1').val());
+      tpos = $('#input1').getCursorPosition();
+      var text = $('#input1').val();
+      var toCursor = text.substring(0, tpos);
+      var re = new RegExp("([a-z]+)$", "ig");
+      var arr = re.exec(toCursor);
+      midx = arr.index;
+      // alert('midx='+midx);
+      $('#cursor').text('cursor=' + tpos + "text=" + arr);
+      wlist=[];
+      showmatch(arr[0]);
+      $('#wordlist').text(showWordList(wlist));
+    });
+  }
+);
+
+</script>
+
+<%=text_area :types, :input, :id=>'input1' %>
+<%=text_area :types, :out, :id=>'out1' %>
+<div id="cursor">
+</div>
+
+<div id="wordlist">
+</div>
