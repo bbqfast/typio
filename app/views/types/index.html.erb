@@ -9,15 +9,22 @@ var midx = 0;
 function initdict() {
         
     for(var x in dictdata) {
-      mydict.Addword(x, dictdata[x]);
+      mydict.Addword(x, parseInt(dictdata[x]) );
     }
     
     mydict.onlist = function (w, c)
     {
+      alert('onlist');
       var o = $('#wordlist').text();
       wlist.push([w,c]);
       wlist.sort(function(a,b){return b[1].m_score-a[1].m_score});
     };
+    
+    mydict.log = function(s)
+    {
+      var p = $('#log').text();
+      $('#log').text(p + '   ' + s);
+    }
     
     // $('#wordlist').text('dddd');
     // mydict.list_match("too");
@@ -29,16 +36,31 @@ function showmatch(s)
 {
   var o = $('#wordlist').text('');
   if (s.length > 1) {
-  mydict.list_match(s);
+  wlist = mydict.list_match(s);
+  wlist = wlist.sort(function(a,b){return b.node.m_score-a.node.m_score});
+  // alert('wlist=' + wlist.length);
   }
 }
 
 function showWordList(list)
 {
   var buff='';
-  for(var i=0;i < list.length;i++)
+  var len = Math.min(10, list.length);
+  for(var i=0;i < len;i++)
   {
-    buff = buff + (i+1) + list[i][0] + '(' + list[i][1].m_score + ')' + ' ';
+    buff = buff + (i+1) + ' - ' + list[i].word + '(' + list[i].node.m_score + ')' + '\n';
+  }
+  return buff;
+}
+
+
+function showWordList2(list)
+{
+  var buff='';
+  var len = Math.min(10, list.length);
+  for(var i=0;i < len;i++)
+  {
+    buff = buff + (i+1) + list[i].word + '(' + list[i].node.m_score + ')' + ' ';
   }
   return buff;
 }
@@ -52,7 +74,7 @@ $(document).ready(function ()
       if (wlist.length > 0)
       {
         var c = String.fromCharCode(e.which);
-        if (c > '0' && c < '9')
+        if (c > '0' && c <= '9')
         {
           c = parseInt(c) - 1 ;
           if (c < wlist.length) {
@@ -60,8 +82,8 @@ $(document).ready(function ()
             var x = $('#input1').val();
             x.substring(0, tpos);
             // alert(x);
-            var word = wlist[c][0];
-            wlist[c][1].m_score = 10;
+            var word = wlist[c].word;
+            wlist[c].node.m_score = wlist[c].node.m_score + 100;
             var output = [x.slice(0, midx), word, x.slice(tpos)].join('');
             
             $('#input1').val(output);
@@ -85,17 +107,22 @@ $(document).ready(function ()
       $('#cursor').text('cursor=' + tpos + "text=" + arr);
       wlist=[];
       showmatch(arr[0]);
-      $('#wordlist').text(showWordList(wlist));
+      $('#word1').val(showWordList(wlist));
     });
   }
 );
 
-</script>
+</script>br
 
 <%=text_area :types, :input, :id=>'input1' %>
-<%=text_area :types, :out, :id=>'out1' %>
+<%=text_area :types, :input2, :id=>'word1' %>
+
 <div id="cursor">
 </div>
 
 <div id="wordlist">
+</div>
+
+LOG OUTPUT:
+<div id="log">
 </div>

@@ -82,8 +82,8 @@ function dict(r)
             {
                 if (++pos == s.length)
                 {
-                    w('end = ' + node.m_char);
-                    return node.m_center;
+                    // this.log('end = ' + node.m_char);
+                    return {last: node, node: node.m_center};
                 }
                 w('down = ' + node.m_char);
                 node = node.m_center;
@@ -120,14 +120,37 @@ function dict(r)
     
     this.list_match_i = function(s, root)
     {
-        var prenode = this.prefix(s, root);
+        var found = this.prefix(s, root);
         // w(prenode);
+        // this.log(s + ' ' + found.last.m_char);
         // s = s.substring(0, s.length - 1);
-        w('this.list='+ s);
-        this.list(prenode, s);
+        // w('this.list='+ s);
+        var mlist = [];
+        this.list(found.node, s, mlist);
+        if (found.last.m_wordEnd) {
+            mlist.push({word: s, node: found.last});
+        }
+        return mlist;
     }
     
-    this.list = function(n, str)
+    this.list = function(n, str, mlist)
+    {
+        if (n == null)
+        {
+            return;
+        }
+        if (n.m_wordEnd)
+        {
+            // this.onlist(str + n.m_char, n);
+            mlist.push({word: str + n.m_char, node: n});   // word , node
+        }
+        
+        this.list(n.m_left, str, mlist );
+        this.list(n.m_center, str + n.m_char, mlist);
+        this.list(n.m_right, str, mlist);
+    }
+    
+    this.listc = function(n, str)
     {
         if (n == null)
         {
@@ -151,7 +174,7 @@ dict.prototype.Addword = function(s, score)
 
 dict.prototype.list_match = function(s)
 {
-    this.list_match_i(s, this.m_root);
+    return this.list_match_i(s, this.m_root);
 }
 
 dict.prototype.fillNode = function(file)
