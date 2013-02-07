@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  score: 1
+  rscore: 1
+  dicts: 
+
+two:
+  name: MyString
+  score: 1
+  rscore: 1
+  dicts: 

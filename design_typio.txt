@@ -1,0 +1,25 @@
+
+dicts
+id
+name
+
+words
+id
+name
+score
+
+
+base_words
+id
+name
+score
+
+
+
+rails generate model dicts name:string last:string email:string login:string password_digest:string password_hash:string password_salt:string role:reference
+
+rails generate model Role role_name:string
+
+
+rails generate model dict name:string type:integer
+rails generate model word name:string score:integer rscore:integer dicts:reference

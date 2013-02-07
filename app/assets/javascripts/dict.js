@@ -6,10 +6,24 @@ function Node(ch, wordEnd)
     this.m_center = null;
     this.m_right = null;
     this.m_wordEnd = wordEnd;
-    m_score = 0;
+    this.m_score = 0;
+    this.m_freq = 0;
     //internal Node m_left, m_center, m_right;
     //internal bool m_wordEnd;
 }
+
+Node.prototype.score = function ()
+{
+    var freq = 0;
+    if (typeof this.m_freq != 'undefined')
+    {
+        freq = this.m_freq;
+    }
+    
+    return this.m_score + freq;
+}
+
+
 
 function dict(r)
 {
@@ -181,6 +195,34 @@ dict.prototype.fillNode = function(file)
 {
     this.fillNode_i(this.m_root, file)
 }
+
+dict.prototype.Contains = function(s)
+{
+    if (s == null || s == "") {
+        throw 'ArgumentException';
+    }
+
+    var pos = 0;
+    var node = this.m_root[0];
+    while (node != null)
+    {
+        this.log('char=' + node.m_char)
+        var cmp = s[pos] - node.m_char;
+        if (s[pos] < node.m_char) { node = node.m_left; }
+        else if (s[pos] > node.m_char) { node = node.m_right; }
+        else
+        {
+            if (++pos == s.length) return node.m_wordEnd;
+            node = node.m_center;
+        }
+    }
+
+    return false;
+
+}
+
+
+
 
 // var m_root = [{}];
 

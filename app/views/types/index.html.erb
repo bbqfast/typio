@@ -1,15 +1,84 @@
-
-
 <script type="text/javascript">
 var myroot = [];
 var mydict = new dict(myroot);
 var wlist = [];
 var tpos = 0;
 var midx = 0;
+var lastword = "";
+
+var userdict = [];
+
+
+function loadDict()
+{
+  var ajaxurl='/types/load';
+  $.ajax({
+        type: "POST",
+        url: ajaxurl,
+        data: {name: "boo" },
+        dataType: "json",
+      error: function (xhr, ajaxOptions, thrownError) {
+        alert(' status=' + xhr.status);
+        alert(' ' + thrownError);
+      }
+    }).success(function(data){
+      // $('#message').append(' save success');
+      // alert(data.length);
+      alert(data[5][0] + ' ' + data[5][1]);
+      dictdata = [];
+      dictdata = data;
+      mydict = new dict(myroot);
+      initdict();
+      
+      alert(' load success');
+    });
+
+}
+
+
+function saveDict()
+{
+  var dictname = $('#dictname').val();
+  var ajaxurl='/types/savedict';
+  $.ajax({
+        type: "POST",
+        url: ajaxurl,
+        data: {dictname: dictname, json: JSON.stringify(dictdata) },
+        dataType: "json",
+      error: function (xhr, ajaxOptions, thrownError) {
+        alert(' status=' + xhr.status);
+        alert(' ' + thrownError);
+      }
+    }).success(function(data){
+      // $('#message').append(' save success');
+      alert(' save success');
+    });
+}
+
+function saveWord()
+{
+  var dictname = $('#dictname').val();
+  var ajaxurl='/types/save';
+  $.ajax({
+        type: "POST",
+        url: ajaxurl,
+        data: {dictname: dictname, json: JSON.stringify(userdict) },
+        dataType: "json",
+      error: function (xhr, ajaxOptions, thrownError) {
+        alert(' status=' + xhr.status);
+        alert(' ' + thrownError);
+      }
+    }).success(function(data){
+      // $('#message').append(' save success');
+      alert(' save success');
+    });
+}
+
 function initdict() {
         
-    for(var x in dictdata) {
-      mydict.Addword(x, parseInt(dictdata[x]) );
+    for(var i=0;i<dictdata.length;i++) {
+      var x=dictdata[i];
+      mydict.Addword(x[0], parseInt(x[1]) );
     }
     
     mydict.onlist = function (w, c)
@@ -17,7 +86,7 @@ function initdict() {
       alert('onlist');
       var o = $('#wordlist').text();
       wlist.push([w,c]);
-      wlist.sort(function(a,b){return b[1].m_score-a[1].m_score});
+      wlist.sort(function(a,b){return b[1].score()-a[1].score()});
     };
     
     mydict.log = function(s)
@@ -37,7 +106,7 @@ function showmatch(s)
   var o = $('#wordlist').text('');
   if (s.length > 1) {
   wlist = mydict.list_match(s);
-  wlist = wlist.sort(function(a,b){return b.node.m_score-a.node.m_score});
+  wlist = wlist.sort(function(a,b){return b.node.score()-a.node.score()});
   // alert('wlist=' + wlist.length);
   }
 }
@@ -48,7 +117,7 @@ function showWordList(list)
   var len = Math.min(10, list.length);
   for(var i=0;i < len;i++)
   {
-    buff = buff + (i+1) + ' - ' + list[i].word + '(' + list[i].node.m_score + ')' + '\n';
+    buff = buff + (i+1) + ' - ' + list[i].word + '(' + list[i].node.score() + ')' + '\n';
   }
   return buff;
 }
@@ -60,7 +129,7 @@ function showWordList2(list)
   var len = Math.min(10, list.length);
   for(var i=0;i < len;i++)
   {
-    buff = buff + (i+1) + list[i].word + '(' + list[i].node.m_score + ')' + ' ';
+    buff = buff + (i+1) + list[i].word + '(' + list[i].node.score() + ')' + ' ';
   }
   return buff;
 }
@@ -83,7 +152,8 @@ $(document).ready(function ()
             x.substring(0, tpos);
             // alert(x);
             var word = wlist[c].word;
-            wlist[c].node.m_score = wlist[c].node.m_score + 100;
+            wlist[c].node.m_freq = wlist[c].node.m_freq + 100;
+            userdict.push([wlist[c].word, wlist[c].node.m_score, wlist[c].node.m_freq]);
             var output = [x.slice(0, midx), word, x.slice(tpos)].join('');
             
             $('#input1').val(output);
@@ -100,27 +170,46 @@ $(document).ready(function ()
       tpos = $('#input1').getCursorPosition();
       var text = $('#input1').val();
       var toCursor = text.substring(0, tpos);
+      $('#debug').text ( '(' + lastword + ')' );
+      
+      if (text[tpos-1] == ' ')
+      {
+        if (!mydict.Contains(lastword))
+        {
+          mydict.Addword(lastword, 10, 100 );
+        }
+      }
       var re = new RegExp("([a-z]+)$", "ig");
       var arr = re.exec(toCursor);
       midx = arr.index;
       // alert('midx='+midx);
       $('#cursor').text('cursor=' + tpos + "text=" + arr);
+      lastword = arr[0];
       wlist=[];
       showmatch(arr[0]);
+
       $('#word1').val(showWordList(wlist));
     });
   }
 );
 
-</script>br
+</script>
 
 <%=text_area :types, :input, :id=>'input1' %>
 <%=text_area :types, :input2, :id=>'word1' %>
+<%=text_field :types, :dictname, :value=>'abc', :id=>'dictname' %>
+<%= button_tag 'SaveDict', :onclick => "saveDict();", :class => "toolsbutton" %>
+<%= button_tag 'SaveWords', :onclick => "saveWord();", :class => "toolsbutton" %>
+<%= button_tag 'LoadAsync', :onclick => "loadDict();", :class => "toolsbutton" %>
+
 
 <div id="cursor">
 </div>
 
 <div id="wordlist">
+</div>
+
+<div id="debug">
 </div>
 
 LOG OUTPUT:
